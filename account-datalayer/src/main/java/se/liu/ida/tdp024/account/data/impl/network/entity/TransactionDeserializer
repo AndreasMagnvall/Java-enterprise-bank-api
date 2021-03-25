@@ -1,0 +1,62 @@
+package se.liu.ida.tdp024.account.data.impl.network.entity;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.util.Map;
+
+import org.apache.kafka.common.serialization.Deserializer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
+public class TransactionDeserializer implements Deserializer<TransactionAPI> {
+
+	@Override
+	public void configure(Map<String, ?> configs, boolean isKey) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public TransactionAPI deserialize(String topic, byte[] data) {
+//		ByteArrayInputStream bis = new ByteArrayInputStream(data);
+//		ObjectInput in = null;
+//		try {
+//		  in = new ObjectInputStream(bis);
+//		  Object o = in.readObject(); 
+//		  return (TransactionAPI)o;
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (ClassNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} finally {
+//		  try {
+//		    if (in != null) {
+//		      in.close();
+//		    }
+//		  } catch (IOException ex) {
+//		    // ignore close exception
+//		  }
+//		}
+//		return null;
+		   ObjectMapper mapper = new ObjectMapper();
+		   TransactionAPI transaction = null;
+		   try {
+			   transaction = mapper.readValue(data, TransactionAPI.class);
+		   } catch (Exception e) {
+		     e.printStackTrace();
+		   }
+		   return transaction;
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

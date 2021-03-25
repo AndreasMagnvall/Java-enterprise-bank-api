@@ -1,0 +1,152 @@
+package se.liu.ida.tdp024.account.data.impl.network.facade;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+
+import se.liu.ida.tdp024.account.data.api.entity.Transaction;
+import se.liu.ida.tdp024.account.data.api.facade.AccountEntityFacade.AccountTransferResult;
+import se.liu.ida.tdp024.account.data.api.util.KafkaConstants;
+import se.liu.ida.tdp024.account.data.api.facade.TransactionEntityFacade;
+import se.liu.ida.tdp024.account.data.impl.db.entity.AccountDB;
+import se.liu.ida.tdp024.account.data.impl.network.entity.TransactionAPI;
+import se.liu.ida.tdp024.account.data.impl.network.entity.TransactionDeserializer;
+import se.liu.ida.tdp024.account.data.impl.network.entity.TransactionSerializer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+public class TransactionEntityFacadeKafka implements TransactionEntityFacade {
+	
+	final String brokers  = "lulserver";//KafkaConstants.BROKERS; //System.getenv("rocket.srvs.cloudkafka.com");
+	final String password = "lul123";//KafkaConstants.PASSWORD;//System.getenv("w8d1d5ll");
+	final String username = "lul";//KafkaConstants.USERNAME;//System.getenv("eLBg3jnNFCkdGygA5jam13OeyMJFbRa4");
+	final String topic = "transactions";
+	
+	KafkaConsumer<String, TransactionAPI> consumer;
+	
+//    private final String topic;
+    private final Properties producerProps;
+    private final Properties consumerProps;
+    public TransactionEntityFacadeKafka() {
+    	
+    	String jaasTemplate = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
+    	String jaasCfg = String.format(jaasTemplate, username, password);
+    
+	    String serializer    = StringSerializer.class.getName();
+	    String deserializer  = StringDeserializer.class.getName();
+	    String transactionDeserializer = TransactionDeserializer.class.getName();
+	    String transactionSerializer   = TransactionSerializer.class.getName();
+	 
+	    producerProps = new Properties();
+	    producerProps.put("bootstrap.servers", brokers);
+	   // producerProps.put("group.id", username + "-consumer");
+	   // producerProps.put("enable.auto.commit", "true");
+//	    props.put("auto.commit.interval.ms", "1000");
+//	    props.put("auto.offset.reset", "earliest");
+//	    props.put("session.timeout.ms", "30000");
+//	    props.put("key.deserializer", deserializer);
+//	    props.put("value.deserializer", transactionDeserializer);
+	    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, serializer);
+	    producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, transactionSerializer);
+//	    props.put("security.protocol", "SASL_SSL");
+//	    props.put("sasl.mechanism", "SCRAM-SHA-256");
+//	    props.put("sasl.jaas.config", jaasCfg);
+	    consumerProps = new Properties();
+	    consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
+	    consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, username + "-consumer");
+	    consumerProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+	    consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, transactionDeserializer);
+	    consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, deserializer);
+	    
+	    
+	    consumer = new KafkaConsumer<>(consumerProps);	
+    	consumer.subscribe(Arrays.asList(topic));
+	    
+    }
+    @Override
+	public boolean createTransaction(String transactionType, int amount, Date created, AccountTransferResult res) {
+    	System.out.println("Enter transaction");
+        boolean success = false;
+    	try {
+		
+			Producer<String, TransactionAPI> producer = new KafkaProducer<>(producerProps);
+//		    Future<RecordMetadata> fut = producer.send(new ProducerRecord<>("lul", null, "lmao"));
+		    System.out.println("Enter 2");
+		    String status         = res.getStatus().getSuccess() ? "OK" : "FAILED";
+		    System.out.println("Enter 3");
+		    AccountDB accountDB   = res.getAccount();
+		    System.out.println("Enter 4");
+		    boolean validTransType = transactionType.equals("DEBIT") || transactionType.equals("CREDIT");
+		    
+		    if(!validTransType)
+		    	return false;
+		    
+		    System.out.println("Enter 5");
+		    
+		    System.out.println("Sending transaction");
+		    TransactionAPI transaction = new TransactionAPI(transactionType, amount, created, status, accountDB);
+	        Future<RecordMetadata> fut = producer.send(new ProducerRecord<>(topic, null, transaction));
+        
+   
+      	
+		
+			  fut.wait();
+			  RecordMetadata result = fut.get();
+			  success = true;
+			  
+			  System.out.println("Returneed from the FUTURE");
+		        // do something with result
+		} 	catch (ExecutionException e) {	
+				System.out.println("EXECUTED");
+		        System.out.println(e.getMessage());
+		        // do something with e
+		 } catch (InterruptedException e) {
+			    System.out.println("Interrupted");
+			 	System.out.println(e.getMessage());
+		 } catch (Exception e) {
+			 System.out.println("lol2");
+			 System.out.println(e.getMessage());
+		 }
+    	
+    	System.out.println("lol");
+		return success;
+		
+	}
+    
+    @Override
+	public List<Transaction> getTransactions(int accountId) {
+    	List<Transaction> transactions = new ArrayList<>();
+  
+    	System.out.println(consumer.listTopics().toString());
+    	
+        ConsumerRecords<String, TransactionAPI> records = consumer.poll(100);
+        System.out.println(records.count());
+        for (ConsumerRecord<String, TransactionAPI> record : records) {
+        	System.out.println("ahhhhhh");
+        	
+        	
+            System.out.printf("%s [%d] offset=%d, key=%s, value=\"%s\"\n",
+							  record.topic(), record.partition(),
+							  record.offset(), record.key(), record.value().getType());
+		}
+        //consumer.close();
+        
+		return transactions;	
+	}
+	
+}

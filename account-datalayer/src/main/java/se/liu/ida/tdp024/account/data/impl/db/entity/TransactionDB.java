@@ -1,0 +1,101 @@
+ package se.liu.ida.tdp024.account.data.impl.db.entity;
+
+
+import java.util.Date;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import se.liu.ida.tdp024.account.data.api.entity.Transaction;
+
+
+@Entity
+public class TransactionDB implements Transaction {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7988362872211664343L;
+
+	@Id
+	@GeneratedValue
+	int id;
+	
+	String type;
+	int amount;
+	
+	@JsonFormat(pattern="yyyy.MM.dd HH:mm:ss")
+	@Temporal(value = TemporalType.DATE)
+	Date created;
+	String status;
+	
+	@ManyToOne(targetEntity=AccountDB.class)
+	@JoinColumn(name = "account_id") 
+	AccountDB account;
+	
+	public TransactionDB(String type, int amount, Date created, String status, AccountDB account) {
+		super();
+		this.type = type;
+		this.amount = amount;
+		this.created = created;
+		this.status = status;
+		this.account = account;
+	}
+	
+	public TransactionDB() {}
+	
+	@Override
+	public String getStatus() {
+		return status;
+	}
+	@Override
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	@Override
+	public int getId() {
+		return id;
+	}
+	@Override
+	public String getType() {
+		return type;
+	}
+	@Override
+	public void setType(String type) {
+		this.type = type;
+	}
+	@Override
+	public int getAmount() {
+		return amount;
+	}
+	@Override
+	public void setAmount(int amount) {
+		this.amount = amount;
+	}
+	
+	@Override
+	public Date getCreated() {
+		return created;
+	}
+	
+	@Override
+	public void setCreated(Date created) {
+		this.created = created;
+	}
+	
+	@Override
+	public AccountDB getAccount() {
+		return account;
+	}
+	@Override
+	public void setAccount(AccountDB account) {
+		this.account = account;
+	}	
+}

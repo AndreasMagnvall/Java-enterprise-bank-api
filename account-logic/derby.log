@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Fri Aug 28 13:09:24 CEST 2020:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0174-34c2-03da-000006f65960 
+on database directory memory:/home/haskell/Desktop/lab-3/account-logic/dataPU_embedded with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@277050dc 
+Loaded from file:/home/haskell/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Ubuntu
+java.runtime.version=11.0.8+10-post-Ubuntu-0ubuntu120.04
+user.dir=/home/haskell/Desktop/lab-3/account-logic
+os.name=Linux
+os.arch=amd64
+os.version=5.4.0-42-generic
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

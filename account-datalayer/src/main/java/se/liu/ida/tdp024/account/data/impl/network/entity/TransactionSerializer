@@ -1,0 +1,60 @@
+package se.liu.ida.tdp024.account.data.impl.network.entity;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.Map;
+
+import org.apache.kafka.common.serialization.Serializer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class TransactionSerializer implements Serializer<TransactionAPI> {
+
+	
+	private boolean isKey;
+	@Override
+	public void configure(Map<String, ?> configs, boolean isKey) {
+		// TODO Auto-generated method stub
+		this.isKey = isKey;
+	}
+
+	@Override
+	public byte[] serialize(String topic, TransactionAPI data) {
+//		// TODO Auto-generated method stub
+//		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//		ObjectOutputStream out = null;
+//		try {
+//		  out = new ObjectOutputStream(bos);   
+//		  out.writeObject(data);
+//		  out.flush();
+//		  byte[] bytes = bos.toByteArray();
+//		  return bytes;
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} finally {
+//		  try {
+//		    bos.close();
+//		  } catch (IOException ex) {
+//		    // ignore close exception
+//		  }
+//		}
+//		return null;
+		   byte[] retVal = null;
+		   ObjectMapper objectMapper = new ObjectMapper();
+		   try {
+		     retVal = objectMapper.writeValueAsString(data).getBytes();
+		   } catch (Exception e) {
+		     e.printStackTrace();
+		   }
+		   return retVal;
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
